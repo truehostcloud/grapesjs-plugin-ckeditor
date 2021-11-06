@@ -1,17 +1,21 @@
-import grapesjs from 'grapesjs';
+import grapesjs from 'grapesjs'
 
 const stopPropagation = e => e.stopPropagation();
 
-export default grapesjs.plugins.add('gjs-plugin-ckeditor', (editor, opts = {}) => {
+grapesjs.plugins.add('gjs-plugin-ckeditor', (editor, opts = {}) => {
   let c = opts;
 
   let defaults = {
     // CKEditor options
-    options: {},
+    options: {
+      // fix bug : https://github.com/artf/grapesjs-plugin-ckeditor/issues/49
+      enterMode: CKEDITOR.ENTER_BR,
+      shiftEnterMode: CKEDITOR.ENTER_P
+    },
 
     // On which side of the element to position the toolbar
     // Available options: 'left|center|right'
-    position: 'left',
+    position: 'center',
   };
 
   // Load defaults
@@ -26,19 +30,19 @@ export default grapesjs.plugins.add('gjs-plugin-ckeditor', (editor, opts = {}) =
 
   editor.setCustomRte({
     enable(el, rte) {
-      // If already exists I'll just focus on it
-      if(rte && rte.status != 'destroyed') {
-        this.focus(el, rte);
-      	return rte;
-      }
 
+      // if(rte && rte.status != 'destroyed') {
+      //   this.focus(el, rte);
+      //   return rte;
+      // }
+      
       el.contentEditable = true;
 
       // Seems like 'sharedspace' plugin doesn't work exactly as expected
       // so will help hiding other toolbars already created
       let rteToolbar = editor.RichTextEditor.getToolbarEl();
       [].forEach.call(rteToolbar.children, (child) => {
-      	child.style.display = 'none';
+        child.style.display = 'none';
       });
 
       // Check for the mandatory options
@@ -96,49 +100,27 @@ export default grapesjs.plugins.add('gjs-plugin-ckeditor', (editor, opts = {}) =
       });
 
       this.focus(el, rte);
-
-
       return rte;
     },
 
     disable(el, rte) {
       el.contentEditable = false;
-      if(rte && rte.focusManager)
+      if(rte && rte.focusManager){
         rte.focusManager.blur(true);
-    },
-
-    focus(el, rte) {
-      // Do nothing if already focused
-      if (rte && rte.focusManager.hasFocus) {
-        return;
       }
-      el.contentEditable = true;
-      rte && rte.focus();
+      // fix bug : https://github.com/artf/grapesjs-mjml/issues/193
+      // fix bug : https://github.com/artf/grapesjs-plugin-ckeditor/issues/37
+      rte.destroy(true); 
     },
-  });
 
-  // Update RTE toolbar position
-  editor.on('rteToolbarPosUpdate', (pos) => {
-    // Update by position
-    switch (c.position) {
-      case 'center':
-        let diff = (pos.elementWidth / 2) - (pos.targetWidth / 2);
-        pos.left = pos.elementLeft + diff;
-        break;
-      case 'right':
-        let width = pos.targetWidth;
-        pos.left = pos.elementLeft + pos.elementWidth - width;
-        break;
-    }
-
-    if (pos.top <= pos.canvasTop) {
-      pos.top = pos.elementTop + pos.elementHeight;
-    }
-
-    // Check if not outside of the canvas
-    if (pos.left < pos.canvasLeft) {
-      pos.left = pos.canvasLeft;
-    }
+    // fix bug : https://github.com/artf/grapesjs-plugin-ckeditor/issues/31
+    focus(el, rte) {
+      el.contentEditable = true;
+      editor.RichTextEditor.updatePosition()
+      setTimeout(function() {
+        rte && rte.focus();
+      }, 200);
+    },
   });
 
 });

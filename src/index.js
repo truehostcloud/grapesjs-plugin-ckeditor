@@ -103,11 +103,15 @@ export default grapesjs.plugins.add('gjs-plugin-ckeditor', (editor, opts = {}) =
 
       return rte;
     },
-
+    // refer to: https://github.com/yanfanvip/grapesjs-plugin-ckeditor/commit/52123968877a2660265e322b875d13225d00dc94#diff-bfe9874d239014961b1ae4e89875a6155667db834a410aaaa2ebe3cf89820556R106
     disable(el, rte) {
       el.contentEditable = false;
-      if(rte && rte.focusManager)
+      if(rte && rte.focusManager){
         rte.focusManager.blur(true);
+      }
+      // fix bug : https://github.com/artf/grapesjs-mjml/issues/193
+      // fix bug : https://github.com/artf/grapesjs-plugin-ckeditor/issues/37
+      rte.destroy(true); 
     },
 
     focus(el, rte) {

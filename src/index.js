@@ -85,6 +85,7 @@ export default grapesjs.plugins.add(
           var toolbar = rteToolbar.querySelector("#cke_" + rte.name);
           if (toolbar) {
             toolbar.style.display = "block";
+            toolbar.style.minWidth = c.minWidth || "350px";
           }
           editor.Canvas.getWindow().dispatchEvent(new CustomEvent("scroll"));
         });
